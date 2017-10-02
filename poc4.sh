@@ -1,9 +1,8 @@
 #!/bin/bash
-
 # Script to encrypt/decrypt every cell in a CSV using Vault Transit secret backend
 
 # Usage:
-# ./poc3.sh filename encrypt|decrypt
+# ./poc4.sh filename encrypt|decrypt
 
 # Set URL of Vault instance
 VAULT_ADDR="http://127.0.0.1:8200"
@@ -18,9 +17,7 @@ fi
 FILEPATH=`echo $1|cut -d'/' -f1`
 FILENAME=`echo $1|cut -d'/' -f2`
 
-
-# Set ACTION for script
-# Either encrypt or decrypt
+# Set ACTION for script, either encrypt or decrypt
 SCRIPTACTION=$2
 
 # Read in the CSV
@@ -56,13 +53,16 @@ while IFS="," read f1 f2 f3 f4 f5 f6 f7
     # Function to base64 encode input
     b64encode(){
       # No need to encode the row number
-      # bROW=`echo $f1|base64`
-      bPATIENTID=`echo $f2|base64`
-      bSMOKER=`echo $f3|base64`
-      bSTROKE=`echo $f4|base64`
-      bLUNGCANCER=`echo $f5|base64`
-      bHEARTDISEASE=`echo $f6|base64`
-      bRISK=`echo $f7|base64`
+      # bF1=`echo $f1|base64`
+      bF2=`echo $f2|base64`
+      bF3=`echo $f3|base64`
+      bF4=`echo $f4|base64`
+      bF5=`echo $f5|base64`
+      bF6=`echo $f6|base64`
+      bF7=`echo $f7|base64`
+
+      bROW=`echo "$bF2,$bF3,$bF4,$bF5,$bF6,$bF7"`
+      echo $bROW >> $FILENAME.b64encoded
     }
 
     # Function to base64 decode input
@@ -78,33 +78,23 @@ while IFS="," read f1 f2 f3 f4 f5 f6 f7
     }
 
     plainVAULTJSON(){
-      echo "{" > patient.json
-      echo "  \"batch_input\": [" >> patient.json
-      # No need to encrypt the row number
-      # echo "    { \"plaintext\": \"$bROW\" }," >> patient.json
-      echo "    { \"plaintext\": \"$bPATIENTID\" }," >> patient.json
-      echo "    { \"plaintext\": \"$bSMOKER\" }," >> patient.json
-      echo "    { \"plaintext\": \"$bSTROKE\" }," >> patient.json
-      echo "    { \"plaintext\": \"$bLUNGCANCER\" }," >> patient.json
-      echo "    { \"plaintext\": \"$bHEARTDISEASE\" }," >> patient.json
-      echo "    { \"plaintext\": \"$bRISK\" }" >> patient.json
-      echo "  ]" >> patient.json
-      echo "}" >> patient.json
+    cat $FILENAME.b64encoded | jq '. | split(",") | map( {plaintext: .} ) | {batch_input: .} ' -R -s - |sed -e's/\\n//g' > $FILENAME.b64encoded.json
+    rm $FILENAME.b64encoded
     }
 
     # Function to encrypt using Vault Transit
     vaultEncrypt(){
       # Send patient.json to Vault
-      curl -s --header "X-Vault-Token: $VAULT_TOKEN" --request POST --data @patient.json $VAULT_ADDR/v1/transit/encrypt/foo > patient_encrypt.json
+      curl -s --header "X-Vault-Token: $VAULT_TOKEN" --request POST --data @$FILENAME.b64encoded.json $VAULT_ADDR/v1/transit/encrypt/foo > $FILENAME.encrypt.json
 
       # Remove patient.json now
-      rm patient.json
+      rm $FILENAME.b64encoded.json
 
       # Process returned json with jq and tr
-      encryptROW=`cat patient_encrypt.json | jq --compact-output --raw-output '.data.batch_results | map ([.ciphertext] | join(","))|@text' |tr -d '[' | tr -d ']' | tr -d '"'`
+      encryptROW=`cat $FILENAME.encrypt.json | jq --compact-output --raw-output '.data.batch_results | map ([.ciphertext] | join(","))|@text' |tr -d '[' | tr -d ']' | tr -d '"'`
 
-      # Remove patient_encrypt.json now
-      rm patient_encrypt.json
+      # Remove patient.json now
+      rm $FILENAME.encrypt.json
 
       echo "$f1,$encryptROW" >> transit_files/cipher_$FILENAME
     }
@@ -123,6 +113,7 @@ while IFS="," read f1 f2 f3 f4 f5 f6 f7
     # }
 
   encryptSourceCSV(){
+      # b64encode; plainVAULTJSON; vaultEncrypt;
       b64encode; plainVAULTJSON; vaultEncrypt;
   }
 
