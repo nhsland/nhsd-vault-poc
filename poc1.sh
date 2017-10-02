@@ -9,14 +9,15 @@ VAULT_ADDR="http://127.0.0.1:8200"
 if [[ -z $VAULT_TOKEN ]]
 then
     failed "ERROR: Please set Vault token"
+    exit 1
 fi
 
 # Get path and filename from input arguements
 FILEPATH=`echo $1|cut -d'/' -f1`
 FILENAME=`echo $1|cut -d'/' -f2`
 
-echo $FILENAME
-echo $FILEPATH
+# echo $FILENAME
+# echo $FILEPATH
 
 # Read in the CSV
 while IFS="," read f1 f2 f3 f4 f5 f6 f7
@@ -34,7 +35,7 @@ do
   CIPHER=`echo $RESPONSE | cut -d '{' -f 3 |cut -d '}' -f 1|cut -d '"' -f4`
 
   # Write out CSV with encrypted hospital number
-  echo "$f1,$DID,$CIPHER,$f3,$f4,$f5,$f6,$f7" >> cipher_$FILENAME.csv
+  echo "$f1,$DID,$CIPHER,$f3,$f4,$f5,$f6,$f7" >> transit_files/cipher_$FILENAME
 
   # Remove the temp json file
   rm patient.json
