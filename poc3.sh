@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Script to encrypt/decrypt every cell in a CSV using Vault Transit secret backend
 
 # Usage:
@@ -18,40 +17,14 @@ fi
 FILEPATH=`echo $1|cut -d'/' -f1`
 FILENAME=`echo $1|cut -d'/' -f2`
 
-
-# Set ACTION for script
-# Either encrypt or decrypt
+# Set ACTION for script, either encrypt or decrypt
 SCRIPTACTION=$2
 
 # Read in the CSV
 while IFS="," read f1 f2 f3 f4 f5 f6 f7
   do
-    # VARS for decrypted columns
-    dROW=
-    dPATIENTID=
-    dSMOKER=
-    dSTROKE=
-    dLUNGCANCER=
-    dHEARTDISEASE=
-    dRISK=
-
-    # VARS for encrypted columns
-    eROW=
-    ePATIENTID=
-    eSMOKER=
-    eSTROKE=
-    eLUNGCANCER=
-    eHEARTDISEASE=
-    eRISK=
-
     # VARS for fields from columns
     fROW=$f1
-    fPATIENTID=$f2
-    fSMOKER=$f3
-    fSTROKE=$f4
-    fLUNGCANCER=$f5
-    fHEARTDISEASE=$f6
-    fRISK=$f7
 
     # Function to base64 encode input
     b64encode(){
@@ -125,15 +98,15 @@ while IFS="," read f1 f2 f3 f4 f5 f6 f7
       echo "$f1,$decryptROW" > transit_files/decipher_$FILENAME
     }
 
-  encryptSourceCSV(){
-      b64encode; plainVAULTJSON; vaultEncrypt;
-  }
+    encryptSourceCSV(){
+        b64encode; plainVAULTJSON; vaultEncrypt;
+    }
 
-  decryptSourceCSV(){
-      cipherVAULTJSON; vaultDecrypt; b64decode;
-      # Write out CSV
-      echo "$fROW,$bPATIENTID,$bSMOKER,$bSTROKE,$bLUNGCANCER,$bHEARTDISEASE,$bRISK" >> transit_files/plain_$FILENAME
-  }
+    decryptSourceCSV(){
+        cipherVAULTJSON; vaultDecrypt; b64decode;
+        # Write out CSV
+        echo "$fROW,$bPATIENTID,$bSMOKER,$bSTROKE,$bLUNGCANCER,$bHEARTDISEASE,$bRISK" >> transit_files/plain_$FILENAME
+    }
 
     if [ $SCRIPTACTION = encrypt ] ; then
         encryptSourceCSV;
@@ -142,5 +115,4 @@ while IFS="," read f1 f2 f3 f4 f5 f6 f7
     if [ $SCRIPTACTION = decrypt ] ; then
         decryptSourceCSV;
     fi
-
 done < $1
