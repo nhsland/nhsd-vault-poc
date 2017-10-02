@@ -3,7 +3,7 @@
 # Script to encrypt/decrypt every cell in a CSV using Vault Transit secret backend
 
 # Usage:
-# ./poc2.sh filename encrypt|decrypt
+# ./poc3.sh filename encrypt|decrypt
 
 # Set URL of Vault instance
 VAULT_ADDR="http://127.0.0.1:8200"
