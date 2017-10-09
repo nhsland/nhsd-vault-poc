@@ -13,4 +13,8 @@ Result 22m 8s
 ### poc3
 `time ./poc3.sh source_csv/patients_no_header_10000.csv encrypt`
 
-Result 6m 53s
+Result 5m 42s
+
+`time ./poc3.sh transit_files/cipher_patients_no_header_10000.csv decrypt`
+
+Result 6m 14s
