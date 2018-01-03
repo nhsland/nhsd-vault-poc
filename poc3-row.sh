@@ -15,11 +15,10 @@ transit_cleanup(){
   if [ -f $FILEPATH/$FILENAME-$REQ_LINENO.csv ] ; then
     rm $FILEPATH/$FILENAME-$REQ_LINENO.csv
   fi
-  # rm $FILEPATH/$FILENAME-$REQ_LINENO.csv
+
   if [ -f $FILEPATH/plain_$FILENAME-$REQ_LINENO.csv ] ; then
     rm $FILEPATH/plain_$FILENAME-$REQ_LINENO.csv
   fi
-  # rm $FILEPATH/plain_$FILENAME-$REQ_LINENO.csv
 }
 
 decrypt_row(){
