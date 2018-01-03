@@ -5,7 +5,14 @@
 # ./poc4.sh filename encrypt|decrypt
 
 # Set URL of Vault instance
-VAULT_ADDR="http://127.0.0.1:8200"
+#VAULT_ADDR="http://127.0.0.1:8200"
+
+# Check for Vault Address
+if [[ -z $VAULT_ADDR ]]
+then
+    failed "ERROR: Please set Vault Address"
+    exit 1
+fi
 
 # Check for Vault token
 if [[ -z $VAULT_TOKEN ]]
